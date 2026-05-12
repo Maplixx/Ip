@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu IP</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a, #1a0505, #240b0b);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #fff;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 32px;
+            padding: 50px 40px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(255, 0, 43, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            width: 90%;
+            max-width: 420px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .glass-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 40, 60, 0.15) 0%, transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        #ip-display {
+            font-size: 2.8rem;
+            font-weight: 800;
+            margin-bottom: 35px;
+            background: linear-gradient(135deg, #ff3b3b, #ff0040);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 4px 20px rgba(255, 0, 64, 0.3);
+            min-height: 54px;
+            letter-spacing: 1px;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 40, 60, 0.1);
+            border: 1px solid rgba(255, 40, 60, 0.3);
+            color: #fff;
+            padding: 14px 28px;
+            font-size: 1rem;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 40, 60, 0.25);
+            border-color: rgba(255, 40, 60, 0.5);
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 0, 64, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: scale(0.95);
+        }
+
+        .refresh-btn svg {
+            transition: transform 0.5s ease;
+        }
+
+        .refresh-btn:active svg {
+            transform: rotate(180deg);
+        }
+
+        .loading {
+            opacity: 0.6;
+            animation: pulse 1.2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; filter: blur(2px); }
+            100% { opacity: 1; filter: blur(0px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-container">
+        <h1>Seu IP É</h1>
+        <div id="ip-display" class="loading">Buscando...</div>
+        <button class="refresh-btn" id="refresh-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.92-10.26l5.08 5.08"></path>
+            </svg>
+            Atualizar IP
+        </button>
+    </div>
+
+    <script>
+        const ipDisplay = document.getElementById('ip-display');
+        const refreshBtn = document.getElementById('refresh-btn');
+
+        async function fetchIP() {
+            ipDisplay.textContent = 'Buscando...';
+            ipDisplay.classList.add('loading');
+            
+            try {
+                const timestamp = new Date().getTime();
+                const randomParam = Math.random().toString(36).substring(7);
+                
+                const response = await fetch(`https://api.ipify.org?format=json&nocache=${timestamp}&r=${randomParam}`, {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    },
+                    cache: 'no-store'
+                });
+                
+                if (!response.ok) throw new Error('Deu ruim na rede');
+                
+                const data = await response.json();
+                ipDisplay.textContent = data.ip;
+            } catch (error) {
+                ipDisplay.textContent = 'Erro ao buscar';
+                console.error('Erro:', error);
+            } finally {
+                ipDisplay.classList.remove('loading');
+            }
+        }
+
+        refreshBtn.addEventListener('click', fetchIP);
+        fetchIP();
+    </script>
+</body>
+</html>
+
